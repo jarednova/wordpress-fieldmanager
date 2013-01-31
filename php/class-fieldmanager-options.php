@@ -11,9 +11,15 @@ abstract class Fieldmanager_Options extends Fieldmanager_Field {
 
 	/**
 	 * @var array
-	 * Option data
+	 * Full option data, allows grouping
 	 */
 	public $data = array();
+
+	/**
+	 * @var array
+	 * Shortcut to data which allows a simple associative array
+	 */
+	public $options = array();
 
 	/**
 	 * @var boolean
@@ -51,7 +57,17 @@ abstract class Fieldmanager_Options extends Fieldmanager_Field {
 	 * @param mixed $options
 	 */
 	public function __construct( $options = array() ) {
-	
+		if ( !empty( $options['options'] ) ) {
+			$keys = array_keys( $options['options'] );
+			$use_name_as_value = ( array_keys( $keys ) === $keys );
+			foreach ( $options['options'] as $k => $v ) {
+				$this->data[] = array(
+					'name' => $v,
+					'value' => $use_name_as_value ? $v : $k,
+				);
+			}
+		}
+
 		parent::__construct($options);
 		
 		// Add the options CSS
@@ -162,7 +178,7 @@ abstract class Fieldmanager_Options extends Fieldmanager_Field {
     		
     		// Also assign the taxonomy to an array if it is not one since there may be grouped fields
     		$taxonomies = $this->taxonomy;
-    		if ( !is_array( $this-taxonomy ) ) $taxonomies = array( $this->taxonomy );
+    		if ( !is_array( $this->taxonomy ) ) $taxonomies = array( $this->taxonomy );
 		
 			// Store the each term for this post. Handle grouped fields differently since multiple taxonomies are present.
 			if ( is_array( $this->taxonomy ) ) {

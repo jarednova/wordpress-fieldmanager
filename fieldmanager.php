@@ -18,10 +18,12 @@ require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-group.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-checkbox.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-textfield.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-textarea.php' );
+require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-richtextarea.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-grid.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-hidden.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-options.php' );
 require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-post.php' );
+require_once( dirname( __FILE__ ) . '/php/class-fieldmanager-media.php' );
 
 /**
  * Add CSS and JS to admin area, hooked into admin_enqueue_scripts.
@@ -120,7 +122,7 @@ function _fieldmanager_registry( $var, $val = NULL ) {
  * @param string $var
  * @param boolean $single
  */
-function fm_get_post_meta( $post_id, $var, $single = FALSE ) {
+function fm_get_post_meta( $post_id, $var, $single = True ) {
 	$data = get_post_meta( $post_id, $var, $single );
 	return json_decode( $data, TRUE );
 }

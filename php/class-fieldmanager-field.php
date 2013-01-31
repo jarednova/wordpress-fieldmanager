@@ -167,10 +167,16 @@ abstract class Fieldmanager_Field {
 
 	/**
 	 * @todo Add extra wrapper info rather than this specific.
-	 * @var Fieldmanager_Field
+	 * @var boolean
 	 * Render this element in a tab?
 	 */
 	protected $is_tab = False;
+
+	/**
+	 * @var int Global Sequence
+	 * The global sequence of elements
+	 */
+	private static $global_seq = 0;
 
 	/**
 	 * @param mixed string[]|string the value of the element.
@@ -306,7 +312,7 @@ abstract class Fieldmanager_Field {
 		$out = '';
 		$classes = array( 'fm-item', 'fm-' . $this->name );
 
-		// if ( $this->is_proto ) $out .= "\n----PROTO1 {$this->name}\n";
+		self::$global_seq++;
 		
 		// Drop the fm-group class to hide inner box display if no label is set
 		if ( !( $this->field_class == 'group' && ( !isset( $this->label ) || empty( $this->label ) ) ) ) {
@@ -336,7 +342,6 @@ abstract class Fieldmanager_Field {
 			}
 		}
 
-		// if ( $this->is_proto ) $out .= "\n----PROTO2 {$this->name}\n";
 		$form_element = $this->form_element( $value );
 
 		if ( $this->limit == 0 && !$this->one_label_per_item ) {
@@ -344,7 +349,6 @@ abstract class Fieldmanager_Field {
 		} else {
 			$out .= $form_element;
 		}
-		// if ( $this->is_proto ) $out .= "\n----PROTO3 {$this->name}\n";
 		
 		if ( isset( $this->description ) && !empty( $this->description ) ) {
 			$out .= sprintf( '<div class="fm-item-description">%s</div>', $this->description );
@@ -415,8 +419,14 @@ abstract class Fieldmanager_Field {
 	 * @return string ID for use in a form element.
 	 */
 	public function get_element_id( ) {
-		$slug = $this->is_proto ? 'proto' : $this->get_seq();
-		return 'fm-edit-' . $this->name . '-' . $slug;
+		$el = $this;
+		$id_slugs = array();
+		while ( $el ) {
+			$slug = $el->is_proto ? 'proto' : $el->seq;
+			array_unshift( $id_slugs, $el->name . '-' . $slug );
+			$el = $el->parent;
+		}
+		return 'fm-' . implode( '-', $id_slugs );
 	}
 
 	/**
@@ -445,10 +455,8 @@ abstract class Fieldmanager_Field {
 	public function render_meta_box( $post, $form_struct ) {
 		$key = $form_struct['callback'][0]->name;
 		$values = get_post_meta( $post->ID, $key, TRUE );
+		// if ( $this->name == 'tabs' ) { print_r($values); exit; }
 		wp_nonce_field( 'fieldmanager-save-' . $this->name, 'fieldmanager-' . $this->name . '-nonce' );
-		if ( !is_array( $values ) ) { // default of get_post_meta is empty array.
-			$values = json_decode( $values, TRUE );
-		}
 		echo $this->element_markup( $values );
 	}
 
@@ -496,7 +504,7 @@ abstract class Fieldmanager_Field {
 		$this->data_id = $post_id;
 		$this->data_type = 'post';
 		$data = $this->presave_all( $data );
-		update_post_meta( $post_id, $this->name, str_replace( "\\'", "'", json_encode( $data ) ) );
+		update_post_meta( $post_id, $this->name, $data );
 	}
 
 	/**
@@ -689,6 +697,12 @@ abstract class Fieldmanager_Field {
 	 * @return int
 	 */
 	protected function get_seq() {
-		return $this->is_proto ? 'proto' : $this->seq;
+		return $this->has_proto() ? 'proto' : $this->seq;
+	}
+
+	protected function has_proto() {
+		if ( $this->is_proto ) return True;
+		if ( $this->parent ) return $this->parent->has_proto();
+		return False;
 	}
 }
