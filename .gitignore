@@ -2,3 +2,4 @@
 wpcom-helper.php
 tests/php/build
 tests/php/wp-unit-test
+.DS_Store
